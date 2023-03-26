@@ -1,0 +1,36 @@
+[project]
+name = "autobean-format"
+version = "0.1.0"
+description = "Yet another formatter for beancount"
+authors = [
+    {name = "SEIAROTg", email = "seiarotg@gmail.com"},
+]
+dependencies = [
+    "autobean-refactor>=0.1.4",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[project.scripts]
+autobean-format = "autobean_format.main:main"
+
+[build-system]
+requires = ["pdm-pep517>=1.0"]
+build-backend = "pdm.pep517.api"
+
+[tool.pdm]
+[tool.pdm.build]
+includes = [
+    "autobean_format/",
+]
+excludes = [
+    "autobean_format/tests/",
+]
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "mypy>=0.991",
+    "pytest>=7.2.0",
+    "pytest-cov>=4.0.0",
+]
