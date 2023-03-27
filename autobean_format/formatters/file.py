@@ -1,4 +1,4 @@
-from typing import Optional, TypeAlias
+from typing import Optional, TypeAlias, TypeGuard, get_args
 from autobean_refactor import models
 from . import base
 
@@ -37,15 +37,19 @@ def _get_spacing(prev: Optional[_DirectiveOrComment], next: _DirectiveOrComment)
     return '\n'    
 
 
+def _is_directive_or_comment(model: models.RawModel) -> TypeGuard[_DirectiveOrComment]:
+    return isinstance(model, get_args(_DirectiveOrComment))
+
+
 @base.formatter(models.File)
-def format_file(file: models.File, context: base.Context) -> models.File:
-    formatted = models.File.from_children(directives=())
-    prev = None
-    for directive in file.raw_directives_with_comments:
-        formatted_directive = base.format(directive, context)
-        formatted.raw_directives_with_comments.append(formatted_directive)
-        formatted_directive.spacing_before = _get_spacing(prev, directive)
-        prev = directive
+def format_file(file: models.File, context: base.Context) -> None:
+    prev = None    
+    for child, indented in file.iter_children_formatted():
+        if isinstance(child, models.Whitespace | models.Newline):
+            continue
+        assert _is_directive_or_comment(child)
+        context.stream.write(_get_spacing(prev, child))
+        base.format(child, context.with_indented(indented))
+        prev = child
     if prev is not None:
-        formatted.spacing_after = '\n'
-    return formatted
+        context.stream.write('\n')

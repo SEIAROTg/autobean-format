@@ -14,4 +14,4 @@ class TestNumbers(base.BaseTest):
         ('(1+2)*3', '(1 + 2) * 3'),
     ])
     def test_expr(self, src: str, expected: str) -> None:
-        assert self.format_inline(src, models.NumberExpr) == expected
+        assert self.format(src, models.NumberExpr) == expected

@@ -31,15 +31,6 @@ class BaseTest:
         model.auto_claim_comments()
         return self._format(model, options or _DEFAULT_OPTIONS)
 
-    def format_inline(
-        self,
-        text: str,
-        model_type: Type[models.RawTreeModel],
-        options: Optional[options_lib.Options] = None,
-    ) -> str:
-        model = self.parser.parse_inline(text, model_type)
-        return self._format(model, options or _DEFAULT_OPTIONS)
-
     def format_token(
         self,
         text: str,
