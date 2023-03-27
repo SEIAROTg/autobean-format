@@ -1,4 +1,5 @@
 import re
+from typing import Iterator
 from autobean_refactor import models
 from . import base
 
@@ -6,24 +7,22 @@ _NARRATION_RE = re.compile(r';;(.*?)(?:;(.*))?')
 
 
 @base.formatter(models.Indent)
-def format_indent(indent: models.Indent, context: base.Context) -> None:
-    indent = models.Indent.from_value(context.get_indent())
-    base.print_token(indent, context)
+def format_indent(indent: models.Indent, context: base.Context) -> Iterator[models.RawTokenModel]:
+    yield models.Indent.from_value(context.get_indent())
 
 
 @base.formatter(models.BlockComment)
-def format_block_comment(comment: models.BlockComment, context: base.Context) -> None:
-    comment = models.BlockComment.from_value(
+def format_block_comment(comment: models.BlockComment, context: base.Context) -> Iterator[models.RawTokenModel]:
+    yield models.BlockComment.from_value(
         value=comment.value,
         indent=context.get_indent())
-    base.print_token(comment, context)
 
 
 @base.formatter(models.InlineComment)
-def format_inline_comment(comment: models.InlineComment, context: base.Context) -> None:
+def format_inline_comment(comment: models.InlineComment, context: base.Context) -> Iterator[models.RawTokenModel]:
     match = re.fullmatch(_NARRATION_RE, comment.raw_text)
     if not match:
-        base.print_token(models.InlineComment.from_value(comment.value), context)
+        yield models.InlineComment.from_value(comment.value)
         return
 
     # autobean.narration
@@ -37,4 +36,4 @@ def format_inline_comment(comment: models.InlineComment, context: base.Context) 
         comment_value = comment_part.strip()
         if comment_value:
             raw_text += ' ' + comment_value
-    context.stream.write(raw_text)
+    yield models.InlineComment.from_raw_text(raw_text)

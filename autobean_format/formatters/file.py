@@ -1,4 +1,4 @@
-from typing import Optional, TypeAlias, TypeGuard, get_args
+from typing import Iterator, Optional, TypeAlias, TypeGuard, get_args
 from autobean_refactor import models
 from . import base
 
@@ -42,14 +42,14 @@ def _is_directive_or_comment(model: models.RawModel) -> TypeGuard[_DirectiveOrCo
 
 
 @base.formatter(models.File)
-def format_file(file: models.File, context: base.Context) -> None:
+def format_file(file: models.File, context: base.Context) -> Iterator[models.RawTokenModel]:
     prev = None    
     for child, indented in file.iter_children_formatted():
         if isinstance(child, models.Whitespace | models.Newline):
             continue
         assert _is_directive_or_comment(child)
-        context.stream.write(_get_spacing(prev, child))
-        base.format(child, context.with_indented(indented))
+        yield models.Whitespace.from_raw_text(_get_spacing(prev, child))
+        yield from base.format(child, context.with_indented(indented))
         prev = child
     if prev is not None:
-        context.stream.write('\n')
+        yield models.Newline.from_default()

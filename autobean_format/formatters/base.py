@@ -1,6 +1,5 @@
 import dataclasses
-import io
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, Callable, Iterator, Type, TypeVar
 from autobean_refactor import models
 from .. import options_lib
 
@@ -10,7 +9,6 @@ _M = TypeVar('_M', bound=models.RawModel)
 @dataclasses.dataclass(frozen=True)
 class Context:
     options: options_lib.Options
-    stream: io.TextIOBase
     indent: int
 
     def with_indented(self, indented: bool) -> 'Context':
@@ -22,7 +20,7 @@ class Context:
         return self.options.indent * self.indent
 
 
-_Formatter = Callable[[_M, Context], None]
+_Formatter = Callable[[_M, Context], Iterator[models.RawTokenModel]]
 _FORMATTERS = dict[Type[models.RawModel], _Formatter[Any]]()
 
 
@@ -33,16 +31,12 @@ def formatter(model_type: Type[_M]) -> Callable[[_Formatter[_M]], _Formatter[_M]
     return decorator
 
 
-def format(model: _M, context: Context) -> None:
+def format(model: _M, context: Context) -> Iterator[models.RawTokenModel]:
     formatter = _FORMATTERS.get(type(model))
     if formatter:
-        formatter(model, context)
+        yield from formatter(model, context)
     elif isinstance(model, models.RawTokenModel):
-        context.stream.write(model.raw_text)
+        yield model
     else:
         for child, indented in model.iter_children_formatted():
-            format(child, context.with_indented(indented))
-
-
-def print_token(token: models.RawTokenModel, context: Context) -> None:
-    context.stream.write(token.raw_text)
+            yield from format(child, context.with_indented(indented))

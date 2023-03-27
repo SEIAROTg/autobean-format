@@ -5,5 +5,6 @@ from . import formatters
 
 
 def format(model: models.RawModel, options: options_lib.Options, stream: io.StringIO) -> None:
-    context = formatters.Context(options=options, stream=stream, indent=0)
-    formatters.format(model, context)
+    context = formatters.Context(options=options, indent=0)
+    for token in formatters.format(model, context):
+        stream.write(token.raw_text)
