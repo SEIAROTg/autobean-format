@@ -1,6 +1,7 @@
 import dataclasses
-from typing import Any, Callable, Iterator, Type, TypeVar
-from autobean_refactor import models
+import io
+from typing import Any, Callable, Iterable, Iterator, Type, TypeVar
+from autobean_refactor import models, parser as parser_lib
 from .. import options_lib
 
 _M = TypeVar('_M', bound=models.RawModel)
@@ -8,6 +9,7 @@ _M = TypeVar('_M', bound=models.RawModel)
 
 @dataclasses.dataclass(frozen=True)
 class Context:
+    parser: parser_lib.Parser
     options: options_lib.Options
     indent: int
 
@@ -31,7 +33,7 @@ def formatter(model_type: Type[_M]) -> Callable[[_Formatter[_M]], _Formatter[_M]
     return decorator
 
 
-def format(model: _M, context: Context) -> Iterator[models.RawTokenModel]:
+def format(model: models.RawModel, context: Context) -> Iterator[models.RawTokenModel]:
     formatter = _FORMATTERS.get(type(model))
     if formatter:
         yield from formatter(model, context)
@@ -40,3 +42,11 @@ def format(model: _M, context: Context) -> Iterator[models.RawTokenModel]:
     else:
         for child, indented in model.iter_children_formatted():
             yield from format(child, context.with_indented(indented))
+
+
+def collect(children: Iterable[tuple[models.RawModel, bool]], context: Context) -> str:
+    stream = io.StringIO()
+    for child, indented in children:
+        for token in format(child, context.with_indented(indented)):
+            stream.write(token.raw_text)
+    return stream.getvalue()

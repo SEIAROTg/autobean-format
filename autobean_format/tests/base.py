@@ -20,7 +20,7 @@ class BaseTest:
 
     def _format(self, model: models.RawModel, options: options_lib.Options) -> str:
         stream = io.StringIO()
-        formatter.format(model, options, stream)
+        formatter.format(model, self.parser, options, stream)
         return stream.getvalue()
 
     def format(

@@ -28,36 +28,33 @@ def _get_include_paths(path: str, file: models.File) -> Iterable[str]:
         yield from matches
 
 
-def _load_files(filename: str, recursive: bool) -> Iterator[_File]:
-    parser = parser_lib.Parser()
-    visited = set()
-    queue = collections.deque([filename])
+class _FilesFormatter:
+    def __init__(self, options: options_lib.Options) -> None:
+        self._parser = parser_lib.Parser()
+        self._options = options
 
-    while queue:
-        filename = queue.popleft()
-        visited.add(filename)
-        with open(filename) as f:
-            text = f.read()
-        model = parser.parse(text, models.File)
-        yield _File(filename=filename, text=text, model=model)
-        if recursive:
-            queue.extend(_get_include_paths(filename, model))
+    def load_files(self, filename: str) -> Iterator[_File]:
+        visited = set()
+        queue = collections.deque([filename])
 
+        while queue:
+            filename = queue.popleft()
+            visited.add(filename)
+            with open(filename) as f:
+                text = f.read()
+            model = self._parser.parse(text, models.File)
+            model.auto_claim_comments()
+            yield _File(filename=filename, text=text, model=model)
+            if self._options.recursive:
+                queue.extend(_get_include_paths(filename, model))
 
-def _format_file(model: models.File, options: options_lib.Options) -> str:
-    stream = io.StringIO()
-    formatter.format(model, options, stream)
-    return stream.getvalue()
+    def format_file(self, file: _File) -> str:
+        stream = io.StringIO()
+        formatter.format(file.model, self._parser, self._options, stream)
+        return stream.getvalue()
 
-
-def main() -> None:
-    filename, options = options_lib.parse_args()
-
-    for file in _load_files(filename, options.recursive):
-        file.model.auto_claim_comments()
-        formatted = _format_file(file.model, options)
-
-        match options.output_mode:
+    def output_file(self, file: _File, formatted: str) -> None:
+        match self._options.output_mode:
             case options_lib.OutputMode.STDOUT:
                 sys.stdout.write(formatted)
                 sys.stdout.flush()
@@ -72,3 +69,13 @@ def main() -> None:
             case options_lib.OutputMode.INPLACE:
                 with open(file.filename, 'w') as f:
                     f.write(formatted)
+
+
+def main() -> None:
+    filename, options = options_lib.parse_args()
+
+    formatter = _FilesFormatter(options)
+
+    for file in formatter.load_files(filename):
+        formatted = formatter.format_file(file)
+        formatter.output_file(file, formatted)
