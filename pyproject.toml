@@ -1,6 +1,6 @@
 [project]
 name = "autobean-format"
-version = "0.1.0"
+version = "0.1.1"
 description = "Yet another formatter for beancount"
 authors = [
     {name = "SEIAROTg", email = "seiarotg@gmail.com"},
