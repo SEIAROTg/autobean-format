@@ -1,6 +1,6 @@
 from typing import Iterator
 from autobean_refactor import models
-from ..lib import alignment
+from ..internal import alignment
 from . import base
 
 
