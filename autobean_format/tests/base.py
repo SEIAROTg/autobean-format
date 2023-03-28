@@ -5,10 +5,11 @@ from autobean_format import formatter, options_lib
 import pytest
 
 
-_DEFAULT_OPTIONS = options_lib.Options(
+DEFAULT_OPTIONS = options_lib.Options(
     indent='    ',
     currency_column=80,
     output_mode=options_lib.OutputMode.STDOUT,
+    thousands_separator=options_lib.ThousandsSeparator.KEEP,
     recursive=False,
 )
 
@@ -32,7 +33,7 @@ class BaseTest:
     ) -> str:
         model = self.parser.parse(text, model_type)
         model.auto_claim_comments()
-        return self._format(model, options or _DEFAULT_OPTIONS, indent=indent)
+        return self._format(model, options or DEFAULT_OPTIONS, indent=indent)
 
     def format_token(
         self,
@@ -41,4 +42,4 @@ class BaseTest:
         options: Optional[options_lib.Options] = None,
     ) -> str:
         model = self.parser.parse_token(text, model_type)
-        return self._format(model, options or _DEFAULT_OPTIONS, indent=0)
+        return self._format(model, options or DEFAULT_OPTIONS, indent=0)
