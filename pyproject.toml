@@ -6,7 +6,7 @@ authors = [
     {name = "SEIAROTg", email = "seiarotg@gmail.com"},
 ]
 dependencies = [
-    "autobean-refactor>=0.1.4",
+    "autobean-refactor>=0.2.1",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

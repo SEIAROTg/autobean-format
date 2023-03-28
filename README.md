@@ -6,3 +6,15 @@
 [![license](https://img.shields.io/github/license/SEIAROTg/autobean-format.svg)](https://github.com/SEIAROTg/autobean-format)
 
 Yet another formatter for beancount.
+
+## Usage
+
+```sh
+$ pip install autobean-format
+$ autobean-format -h
+```
+
+## Features
+
+* Recursively format included files.
+* Add / remove thousands separators in numbers.
