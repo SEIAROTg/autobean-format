@@ -18,9 +18,9 @@ class BaseTest:
     def _setup_parser(self, parser: parser_lib.Parser) -> None:
         self.parser = parser
 
-    def _format(self, model: models.RawModel, options: options_lib.Options) -> str:
+    def _format(self, model: models.RawModel, options: options_lib.Options, *, indent: int) -> str:
         stream = io.StringIO()
-        formatter.format(model, self.parser, options, stream)
+        formatter.format(model, self.parser, options, stream, indent=indent)
         return stream.getvalue()
 
     def format(
@@ -28,10 +28,11 @@ class BaseTest:
         text: str,
         model_type: Type[models.RawTreeModel],
         options: Optional[options_lib.Options] = None,
+        indent: int = 0,
     ) -> str:
         model = self.parser.parse(text, model_type)
         model.auto_claim_comments()
-        return self._format(model, options or _DEFAULT_OPTIONS)
+        return self._format(model, options or _DEFAULT_OPTIONS, indent=indent)
 
     def format_token(
         self,
@@ -40,4 +41,4 @@ class BaseTest:
         options: Optional[options_lib.Options] = None,
     ) -> str:
         model = self.parser.parse_token(text, model_type)
-        return self._format(model, options or _DEFAULT_OPTIONS)
+        return self._format(model, options or _DEFAULT_OPTIONS, indent=0)

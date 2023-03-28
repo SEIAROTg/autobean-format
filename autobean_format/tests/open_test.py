@@ -12,6 +12,11 @@ class TestOpen(base.BaseTest):
             id='simple',
         ),
         pytest.param(
+            '; aaa\n2000-01-01      open\tAssets:Foo  ; xxx\n; bbb',
+            '; aaa\n2000-01-01 open Assets:Foo ; xxx\n; bbb',
+            id='comment',
+        ),
+        pytest.param(
             '2000-01-01 open Assets:Foo   USD,GBP,  EUR',
             '2000-01-01 open Assets:Foo                                                      USD, GBP, EUR',
             id='align_currency',
