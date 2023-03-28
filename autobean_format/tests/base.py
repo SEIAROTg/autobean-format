@@ -9,6 +9,7 @@ _DEFAULT_OPTIONS = options_lib.Options(
     indent='    ',
     currency_column=80,
     output_mode=options_lib.OutputMode.STDOUT,
+    recursive=False,
 )
 
 
