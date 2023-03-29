@@ -8,6 +8,7 @@ import pytest
 DEFAULT_OPTIONS = options_lib.Options(
     indent='    ',
     currency_column=80,
+    cost_column=85,
     output_mode=options_lib.OutputMode.STDOUT,
     thousands_separator=options_lib.ThousandsSeparator.KEEP,
     recursive=False,

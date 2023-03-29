@@ -20,6 +20,13 @@ def format_posting(posting: models.Posting, context: base.Context) -> Iterator[m
     elif header.raw_number:
         if padding := alignment.get_padding_align_right(header.raw_number, context.options.currency_column - 1):
             header.raw_account.spacing_after += padding
+    if header.raw_cost:
+        if padding := alignment.get_padding_align_left(header.raw_cost, context.options.cost_column):
+            header.raw_cost.spacing_before += padding
+    elif header.raw_price:
+        if padding := alignment.get_padding_align_left(header.raw_price, context.options.cost_column):
+            header.raw_price.spacing_before += padding
+
     yield from header.tokens
 
     for child, indented in children_it:
