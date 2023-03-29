@@ -13,12 +13,10 @@ _BLANK_LINE_SURROUNDED = {
 def _get_category(model: _DirectiveOrComment) -> str:
     if isinstance(model, models.Pushtag | models.Poptag | models.Pushmeta | models.Popmeta):
         return 'push_pop'
-    if isinstance(model, models.Open | models.Close | models.Commodity):
-        return 'open_close'
+    if isinstance(model, models.Open | models.Close | models.Commodity | models.Pad | models.Balance):
+        return 'declaration'
     if isinstance(model, models.Plugin | models.Include | models.Option):
         return 'directive'
-    if isinstance(model, models.Pad | models.Balance):
-        return 'balance'
     return 'other'
 
 
