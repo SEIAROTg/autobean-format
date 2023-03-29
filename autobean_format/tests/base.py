@@ -11,6 +11,7 @@ DEFAULT_OPTIONS = options_lib.Options(
     cost_column=85,
     output_mode=options_lib.OutputMode.STDOUT,
     thousands_separator=options_lib.ThousandsSeparator.KEEP,
+    spaces_in_braces=False,
     recursive=False,
 )
 
