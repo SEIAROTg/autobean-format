@@ -1,14 +1,14 @@
 [project]
 name = "autobean-format"
-version = "0.1.1"
+version = "0.1.2"
 description = "Yet another formatter for beancount"
 authors = [
     {name = "SEIAROTg", email = "seiarotg@gmail.com"},
 ]
 dependencies = [
-    "autobean-refactor>=0.2.1",
+    "autobean-refactor>=0.2.2",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 
