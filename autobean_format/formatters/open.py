@@ -1,13 +1,13 @@
 from typing import Iterator
 from autobean_refactor import models
-from ..internal import alignment
+from ..internal import alignment, iterating
 from . import base
 
 
 @base.formatter(models.Open)
 def format_open(open: models.Open, context: base.Context) -> Iterator[models.RawTokenModel]:
 
-    children_it = alignment.BufferedIterator(open.iter_children_formatted())
+    children_it = iterating.BufferedIterator(open.iter_children_formatted())
 
     for child, indented in children_it.take_until(lambda x: isinstance(x[0], models.Date)):
         yield from base.format(child, context.with_indented(indented))
