@@ -12,6 +12,7 @@ DEFAULT_OPTIONS = options_lib.Options(
     output_mode=options_lib.OutputMode.STDOUT,
     thousands_separator=options_lib.ThousandsSeparator.KEEP,
     spaces_in_braces=False,
+    sort=False,
     recursive=False,
 )
 

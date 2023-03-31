@@ -1,9 +1,10 @@
-from typing import Iterator, Optional, TypeAlias, TypeGuard, get_args
+from typing import Iterable, Iterator, Optional, Sequence, TypeAlias, TypeGuard, get_args
 from autobean_refactor import models
+from ..internal import sorting
 from . import base
 
-_DirectiveOrComment: TypeAlias = models.Directive | models.BlockComment
-_Block: TypeAlias = list[_DirectiveOrComment]
+_TopLevelEntity: TypeAlias = models.Directive | models.BlockComment
+_Block: TypeAlias = Sequence[_TopLevelEntity]
 _BLANK_LINE_SURROUNDED = {
     models.BlockComment,
     models.IgnoredLine,
@@ -11,7 +12,7 @@ _BLANK_LINE_SURROUNDED = {
 }
 
 
-def _get_category(model: _DirectiveOrComment) -> str:
+def _get_category(model: _TopLevelEntity) -> str:
     if isinstance(model, models.Pushtag | models.Poptag | models.Pushmeta | models.Popmeta):
         return 'push_pop'
     if isinstance(model, models.Open | models.Close | models.Commodity | models.Pad | models.Balance):
@@ -21,7 +22,7 @@ def _get_category(model: _DirectiveOrComment) -> str:
     return 'other'
 
 
-def _should_split(prev: Optional[_DirectiveOrComment], current: _DirectiveOrComment) -> bool:
+def _should_split(prev: Optional[_TopLevelEntity], current: _TopLevelEntity) -> bool:
     if prev is None:
         return False
     current_spacing = prev.spacing_after.count('\n')
@@ -34,27 +35,29 @@ def _should_split(prev: Optional[_DirectiveOrComment], current: _DirectiveOrComm
     return False
 
 
-def _is_directive_or_comment(model: models.RawModel) -> TypeGuard[_DirectiveOrComment]:
-    return isinstance(model, get_args(_DirectiveOrComment))
+def _is_directive_or_comment(model: models.RawModel) -> TypeGuard[_TopLevelEntity]:
+    return isinstance(model, get_args(_TopLevelEntity))
 
 
 def _partition(file: models.File, context: base.Context) -> list[_Block]:
     prev = None
-    blocks: list[_Block] = [[]]
+    last_block = None
+    blocks: list[_Block] = []
     for child, indented in file.iter_children_formatted():
         if isinstance(child, models.Whitespace | models.Newline):
             continue
         assert _is_directive_or_comment(child)
         assert not indented
-        if _should_split(prev, child):
-            blocks.append([child])
+        if last_block is None or _should_split(prev, child):
+            last_block = [child]
+            blocks.append(last_block)
         else:
-            blocks[-1].append(child)
+            last_block.append(child)
         prev = child
     return blocks
 
 
-def _render(blocks: list[_Block], context: base.Context) -> Iterator[models.RawTokenModel]:
+def _render(blocks: Iterable[_Block], context: base.Context) -> Iterator[models.RawTokenModel]:
     prev = None
     for block in blocks:
         if prev:
@@ -67,5 +70,7 @@ def _render(blocks: list[_Block], context: base.Context) -> Iterator[models.RawT
 
 @base.formatter(models.File)
 def format_file(file: models.File, context: base.Context) -> Iterator[models.RawTokenModel]:
-    blocks = _partition(file, context)
+    blocks: list[_Block] = _partition(file, context)
+    if context.options.sort:
+        blocks = sorting.sort_blocks(blocks)
     yield from _render(blocks, context)

@@ -29,6 +29,7 @@ class Options:
     output_mode: OutputMode
     thousands_separator: ThousandsSeparator
     spaces_in_braces: bool
+    sort: bool
     recursive: bool
 
 
@@ -44,6 +45,7 @@ def parse_args() -> tuple[str, Options]:
     parser.add_argument('--output-mode', choices=OutputMode, type=OutputMode, default=OutputMode.STDOUT, help='Output mode. Print to stdout, print a patch file, or update file in place. (default: %(default)s)')
     parser.add_argument('--thousands-separator', choices=ThousandsSeparator, type=ThousandsSeparator, default=ThousandsSeparator.KEEP, help='Add, remove, or keep thousand separators (default: %(default)s)')
     parser.add_argument('--spaces-in-braces', action='store_true', help='Add spaces around content of braces if not empty. (default: false)')
+    parser.add_argument('--sort', action='store_true', help='Sort entries by date and time. (default: false)')
     parser.add_argument('--recursive', action='store_true', help='Recursively format included files. (default: false)')
 
     args = parser.parse_args()
@@ -54,5 +56,6 @@ def parse_args() -> tuple[str, Options]:
         output_mode=args.output_mode,
         thousands_separator=args.thousands_separator,
         spaces_in_braces=args.spaces_in_braces,
+        sort=args.sort,
         recursive=args.recursive,
     )
