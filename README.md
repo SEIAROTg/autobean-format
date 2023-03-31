@@ -10,11 +10,24 @@ Yet another formatter for beancount.
 ## Usage
 
 ```sh
-$ pip install autobean-format
-$ autobean-format -h
+pip install autobean-format
+
+# format and print results
+autobean-format foo.bean
+# format and write back to file
+autobean-format foo.bean --output-mode=inplace
+# format and print the diff
+autobean-format foo.bean --output-mode=diff
+
+# sort entries by date and time
+autobean-format foo.bean --sort
+
+# recursively format all included files
+autobean-format foo.bean --recursive
+
+# add thousands separators to all numbers
+autobean-format foo.bean --thousands-separator=add
+
+# see more options
+autobean-format -h
 ```
-
-## Features
-
-* Recursively format included files.
-* Add / remove thousands separators in numbers.
