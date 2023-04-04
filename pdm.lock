@@ -9,7 +9,7 @@ summary = "Classes Without Boilerplate"
 
 [[package]]
 name = "autobean-refactor"
-version = "0.2.2"
+version = "0.2.3"
 requires_python = ">=3.11"
 summary = "An ergonomic and losess beancount manipulation library"
 dependencies = [
@@ -108,16 +108,16 @@ summary = "Backported and Experimental Type Hints for Python 3.7+"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:81274a1a2908252759aeba14cd331f9e391c220f9c074e662cf5dbe92d1e4dcb"
+content_hash = "sha256:03c2ba29de1b0df814ebb92eb663c59b3995de2f043116b3cbe15941c455f2b0"
 
 [metadata.files]
 "attrs 22.2.0" = [
     {url = "https://files.pythonhosted.org/packages/21/31/3f468da74c7de4fcf9b25591e682856389b3400b4b62f201e65f15ea3e07/attrs-22.2.0.tar.gz", hash = "sha256:c9227bfc2f01993c03f68db37d1d15c9690188323c067c641f1a35ca58185f99"},
     {url = "https://files.pythonhosted.org/packages/fb/6e/6f83bf616d2becdf333a1640f1d463fef3150e2e926b7010cb0f81c95e88/attrs-22.2.0-py3-none-any.whl", hash = "sha256:29e95c7f6778868dbd49170f98f8818f78f3dc5e0e37c0b1f474e3561b240836"},
 ]
-"autobean-refactor 0.2.2" = [
-    {url = "https://files.pythonhosted.org/packages/05/19/db69a84c797fb609ff6a1e358459f2ce21c83fc85db9fe8abb85e038160c/autobean-refactor-0.2.2.tar.gz", hash = "sha256:7e4b74a7e32c282dd03bc1186dba9e393949cda56ba2a9f5f20be0bfa9a6364c"},
-    {url = "https://files.pythonhosted.org/packages/c5/c1/92236ab7a5b57be029f0b1788c800444854453cff86442176d5b4a7590c0/autobean_refactor-0.2.2-py3-none-any.whl", hash = "sha256:611385207f2588d9486d40cae6c594bf77f37dbbb6e7402c7d6e7a4ec40d554f"},
+"autobean-refactor 0.2.3" = [
+    {url = "https://files.pythonhosted.org/packages/0a/d1/b955fbbc183f50c99c7a5e229e8747616442085277a03ccb9260528e4fb9/autobean_refactor-0.2.3-py3-none-any.whl", hash = "sha256:e46ffd082685da55bc5042d3df236689e9b311d49e2b76c7345046ef273e8edf"},
+    {url = "https://files.pythonhosted.org/packages/2c/9f/ba9e07de71a5ccc6c4eb2989b29b843b266677ca1bc1e30653c89443310f/autobean-refactor-0.2.3.tar.gz", hash = "sha256:5e16eeee40178f163728cae675dbe901c0cf427e38741e04ac3fff1cb9717aaf"},
 ]
 "colorama 0.4.6" = [
     {url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
