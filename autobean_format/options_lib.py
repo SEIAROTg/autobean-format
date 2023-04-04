@@ -1,6 +1,9 @@
 import argparse
 import dataclasses
 import enum
+import re
+
+_INDENT_REGEX = re.compile('[ \t]+')
 
 
 class OutputMode(enum.Enum):
@@ -33,13 +36,20 @@ class Options:
     recursive: bool
 
 
+def _indent_type(value: str) -> str:
+    if not _INDENT_REGEX.fullmatch(value):
+        raise argparse.ArgumentTypeError(
+            f'Expected a string of spaces or tabs (not number). Got {value!r}.')
+    return value
+
+
 def parse_args() -> tuple[str, Options]:
     parser = argparse.ArgumentParser(
         prog='autobean-format',
         description='Formats beancount files',
     )
     parser.add_argument('filename')
-    parser.add_argument('--indent', type=str, default='    ', help='Indentation string. (default: 4 spaces)')
+    parser.add_argument('--indent', type=_indent_type, default='    ', help='Indentation string. (default: 4 spaces)')
     parser.add_argument('--currency-column', type=int, default=80, help='Column to align currencies to. (default: %(default)s)')
     parser.add_argument('--cost-column', type=int, default=85, help='Column to align cost and price to. (default: %(default)s)')
     parser.add_argument('--output-mode', choices=OutputMode, type=OutputMode, default=OutputMode.STDOUT, help='Output mode. Print to stdout, print a patch file, or update file in place. (default: %(default)s)')
