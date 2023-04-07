@@ -65,30 +65,41 @@ class _Ordered(Generic[_T], abc.ABC):
     def __init__(self, value: _T) -> None:
         self.value = value
 
-    # Note: a < b may not imply !(b <= a)
+    # Note: a.more_successor_permissive_than(b) may not imply !(b.can_go_before(a))
     @abc.abstractmethod
-    def __lt__(self, other: object) -> bool:
-        ...
+    def more_successor_permissive_than(self, other: Self) -> bool:
+        """Tests if successors permitted by this entity forms a proper superset of those permitted by the other entity."""
 
-    # Note: <= may not be transitive
+    # Note: may not be transitive
     @abc.abstractmethod
-    def __le__(self, other: object) -> bool:
-        ...
+    def can_go_before(self, other: Self) -> bool:
+        """Tests if this entity can go before the other entity."""
 
     @classmethod
     @abc.abstractmethod
     def min(cls, a: Self, b: Self) -> Self:
-        ...
+        """An associative function to summarize the lower bound for can_go_before.
+        
+        Formally:
+        forall x: x.can_go_before(a) && x.can_go_before(b) <=> x.can_go_before(min(a, b))
+        """
 
     @classmethod
     @abc.abstractmethod
     def max(cls, a: Self, b: Self) -> Self:
-        ...
+        """An associative function to summarize the upper bound for can_go_before.
+
+        Formally:
+        forall x: a.can_go_before(x) && b.can_go_before(x) <=> max(a, b).can_go_before(x)
+        """
 
     @classmethod
     @abc.abstractmethod
     def merge(cls, sorted: list[Self], unsorted: list[Self]) -> Iterable[Self]:
-        ...
+        """Merges a sorted list with an unsorted list into a sorted list.
+
+        The original order of `sorted` must be preserved.
+        """
 
     @classmethod
     def sort(cls, values: list[Self]) -> list[Self]:
@@ -104,7 +115,7 @@ def _is_ordered(entities: Sequence[_Ordered[_T]]) -> bool:
     it = iter(entities)
     running_max = next(it)
     for entity in it:
-        if not running_max <= entity:
+        if not running_max.can_go_before(entity):
             return False
         running_max = running_max.max(running_max, entity)
     return True
@@ -121,10 +132,10 @@ def _split_sorted_unsorted(
     for i in range(len(entities)):
         for j in range(i):
             length, running_max, _ = l[j]
-            if not running_max <= entities[i] or length + 1 < l[i][0]:
+            if not running_max.can_go_before(entities[i]) or length + 1 < l[i][0]:
                 continue
             running_max = running_max.max(running_max, entities[i])
-            if length + 1 > l[i][0] or running_max < l[i][1]:
+            if length + 1 > l[i][0] or running_max.more_successor_permissive_than(l[i][1]):
                 l[i] = (length + 1, running_max, j)
         if l[i][0] > max_len:
             max_len = l[i][0]
@@ -162,14 +173,14 @@ def _merge_entries(sorted: Sequence['_OrderedEntry'], unsorted: Sequence['_Order
     reversed_running_min_unsorted = _build_reversed_running_min(unsorted)
     while cursor_sorted < len(sorted) and cursor_unsorted < len(unsorted):
         prev_cursor_sorted = cursor_sorted
-        while cursor_sorted < len(sorted) and sorted[cursor_sorted] <= reversed_running_min_unsorted[cursor_unsorted]:
+        while cursor_sorted < len(sorted) and sorted[cursor_sorted].can_go_before(reversed_running_min_unsorted[cursor_unsorted]):
             cursor_sorted += 1
         if cursor_sorted > prev_cursor_sorted:
             yield sorted[prev_cursor_sorted:cursor_sorted]
         if cursor_sorted == len(sorted):
             break
         prev_cursor_unsorted = cursor_unsorted
-        while cursor_unsorted < len(unsorted) and reversed_running_min_unsorted[cursor_unsorted] < sorted[cursor_sorted]:
+        while cursor_unsorted < len(unsorted) and not sorted[cursor_sorted].can_go_before(reversed_running_min_unsorted[cursor_unsorted]):
             cursor_unsorted += 1
         yield unsorted[prev_cursor_unsorted:cursor_unsorted]
     if cursor_sorted < len(sorted):
@@ -185,17 +196,14 @@ class _OrderedEntry(_Ordered[_Entry]):
         self.date = entry.date
         self.time = _get_entry_time(entry)
 
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, _OrderedEntry):
-            return NotImplemented
-        return self.date < other.date or (
-            self.date == other.date and self.time is not None and other.time is not None and self.time < other.time
-        )
+    def more_successor_permissive_than(self, other: Self) -> bool:
+        return self.date < other.date or (self.date == other.date and (
+            self.time is None and other.time is not None or
+            self.time is not None and other.time is not None and self.time < other.time))
 
-    def __le__(self, other: object) -> bool:
-        if not isinstance(other, _OrderedEntry):
-            return NotImplemented
-        return not other < self
+    def can_go_before(self, other: Self) -> bool:
+        return self.date < other.date or (self.date == other.date and (
+            self.time is None or other.time is None or self.time <= other.time))
 
     @classmethod
     def min(cls, a: Self, b: Self) -> Self:
@@ -212,7 +220,7 @@ class _OrderedEntry(_Ordered[_Entry]):
         return a
 
     def simple_sort_key(self) -> Any:
-        return (self.date, self.time)
+        return (self.date, self.time or 0)
 
     @classmethod
     def merge(cls, sorted: list['_OrderedEntry'], unsorted: list['_OrderedEntry']) -> Iterator['_OrderedEntry']:
@@ -251,32 +259,28 @@ class _OrderedBlock(_Ordered[_Block]):
 
     @classmethod
     def min(cls, a: Self, b: Self) -> Self:
-        if not b._min or not b._max or (a._min and a._max and (
-                a._min < b._min or a._min <= b._min and a._max <= b._max)):
+        if (not b._min or (a._min and _OrderedEntry.min(a._min, b._min) is a._min)):
             return a
         return b
 
     @classmethod
     def max(cls, a: Self, b: Self) -> Self:
-        if not a._min or not a._max or (b._min and b._max and (
-                a._min < b._min or a._min <= b._min and a._max <= b._max)):
+        if (not a._max or (b._max and _OrderedEntry.max(a._max, b._max) is b._max)):
             return b
         return a
 
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, _OrderedBlock):
-            return NotImplemented
+    def more_successor_permissive_than(self, other: Self) -> bool:
         return bool(
-            self._min and self._max and other._min and other._max and
-            self._max <= other._min and other._max > self._min)
+            not self._max and other._max or  # undated is more permissive than dated
+            self._max and other._max and self._max.more_successor_permissive_than(other._max)
+        )
 
-    def __le__(self, other: object) -> bool:
-        if not isinstance(other, _OrderedBlock):
-            return NotImplemented
-        return bool(not self._max or not other._min or self._max <= other._min)
+    def can_go_before(self, other: Self) -> bool:
+        return bool(not self._max or not other._min or self._max.can_go_before(other._min))
 
     def simple_sort_key(self) -> Any:
-        return (self._min and self._min.simple_sort_key(), self._max and self._max.simple_sort_key())
+        assert self._min and self._max  # undated blocks must be part of sorted
+        return (self._min.simple_sort_key(), self._max.simple_sort_key())
 
     @classmethod
     def merge(cls, sorted: list['_OrderedBlock'], unsorted: list['_OrderedBlock']) -> Iterator['_OrderedBlock']:
@@ -284,10 +288,10 @@ class _OrderedBlock(_Ordered[_Block]):
         heapq.heapify(keyed_unsorted)
         cursor_sorted = 0
         while cursor_sorted < len(sorted) and keyed_unsorted:
-            if sorted[cursor_sorted] <= keyed_unsorted[0][1]:
+            if sorted[cursor_sorted].can_go_before(keyed_unsorted[0][1]):
                 yield sorted[cursor_sorted]
                 cursor_sorted += 1
-            elif keyed_unsorted[0][1] <= sorted[cursor_sorted]:
+            elif keyed_unsorted[0][1].can_go_before(sorted[cursor_sorted]):
                 yield heapq.heappop(keyed_unsorted)[1]
             else:
                 sorted_head_entries = sorted[cursor_sorted].entries
