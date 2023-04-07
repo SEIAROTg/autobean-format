@@ -42,6 +42,7 @@ as it may be over-complexing and degraded performance.
 """
 
 import abc
+import bisect
 import decimal
 import functools
 import heapq
@@ -125,25 +126,29 @@ def _split_sorted_unsorted(
     entities: Sequence[_O],
 ) -> tuple[list[_O], list[_O]]:
 
-    # (length, running_max, prev)
-    l = [(1, entity, -1) for entity in entities]
+    # (running_max, prev)
+    l = list[tuple[_O, int]]()
+    # prev length -> prev
+    m = list[int]()
     sorted, unsorted = [], []
-    max_len, last = 0, -1
     for i in range(len(entities)):
-        for j in range(i):
-            length, running_max, _ = l[j]
-            if not running_max.can_go_before(entities[i]) or length + 1 < l[i][0]:
-                continue
-            running_max = running_max.max(running_max, entities[i])
-            if length + 1 > l[i][0] or running_max.more_successor_permissive_than(l[i][1]):
-                l[i] = (length + 1, running_max, j)
-        if l[i][0] > max_len:
-            max_len = l[i][0]
-            last = i
+        prev_len = bisect.bisect_left(m, True, key=lambda prev: not l[prev][0].can_go_before(entities[i]))
+        running_max = entities[i]
+        if prev_len:
+            prev = m[prev_len - 1]
+            running_max = running_max.max(running_max, l[prev][0])
+        else:
+            prev = -1
+        l.append((running_max, prev))
+        if prev_len == len(m):
+            m.append(i)
+        elif running_max.more_successor_permissive_than(l[m[prev_len]][0]):
+            m[prev_len] = i
+    last = m[-1] if m else -1
     unsorted.append(entities[last+1:])
     while last >= 0:
         sorted.append(entities[last])
-        prev = l[last][2]
+        prev = l[last][1]
         unsorted.append(entities[prev + 1:last])
         last = prev
     sorted.reverse()
