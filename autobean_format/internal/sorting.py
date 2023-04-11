@@ -289,29 +289,30 @@ class _OrderedBlock(_Ordered[_Block]):
 
     @classmethod
     def merge(cls, sorted: list['_OrderedBlock'], unsorted: list['_OrderedBlock']) -> Iterator['_OrderedBlock']:
-        keyed_unsorted = [(block.simple_sort_key(), block) for block in unsorted]
+        keyed_unsorted = [(block.simple_sort_key(), i, block) for i, block in enumerate(unsorted)]
         heapq.heapify(keyed_unsorted)
         cursor_sorted = 0
         while cursor_sorted < len(sorted) and keyed_unsorted:
-            if sorted[cursor_sorted].can_go_before(keyed_unsorted[0][1]):
+            if sorted[cursor_sorted].can_go_before(keyed_unsorted[0][2]):
                 yield sorted[cursor_sorted]
                 cursor_sorted += 1
-            elif keyed_unsorted[0][1].can_go_before(sorted[cursor_sorted]):
-                yield heapq.heappop(keyed_unsorted)[1]
+            elif keyed_unsorted[0][2].can_go_before(sorted[cursor_sorted]):
+                yield heapq.heappop(keyed_unsorted)[2]
             else:
                 sorted_head_entries = sorted[cursor_sorted].entries
                 cursor_sorted += 1
-                unsorted_head_entries = heapq.heappop(keyed_unsorted)[1].entries
+                unsorted_block = heapq.heappop(keyed_unsorted)
+                unsorted_head_entries = unsorted_block[2].entries
                 assert sorted_head_entries is not None
                 assert unsorted_head_entries is not None
                 split_blocks = _merge_entries(sorted_head_entries, unsorted_head_entries)
                 for block in split_blocks:
                     ordered_block = _OrderedBlock(block)
-                    heapq.heappush(keyed_unsorted, (ordered_block.simple_sort_key(), ordered_block))
+                    heapq.heappush(keyed_unsorted, (ordered_block.simple_sort_key(), unsorted_block[1], ordered_block))
         if cursor_sorted < len(sorted):
             yield from sorted[cursor_sorted:]
         while keyed_unsorted:
-            yield heapq.heappop(keyed_unsorted)[1]
+            yield heapq.heappop(keyed_unsorted)[2]
 
 
 def _sort_compartment(blocks: list[_OrderedBlock]) -> list[Sequence[_TopLevelEntitiy]]:

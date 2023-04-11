@@ -116,6 +116,11 @@ class TestSorting(base.BaseTest):
             [['2000-01-01 946699200000000', '2000-01-01 946702800000', '2000-01-01 946706400', '2000-01-01 07:00:00', '2000-01-01 08:00']],
             id='distinct time units',
         ),
+        pytest.param(
+            [['2000-01-02'], ['2000-01-02'], ['2000-01-01'], ['2000-01-01']],
+            [['2000-01-01'], ['2000-01-01'], ['2000-01-02'], ['2000-01-02']],
+            id='same sort key',
+        ),
     ])
     def test_sort_blocks(self, blocks: list[_TestBlock], sorted_blocks: Optional[list[_TestBlock]]) -> None:
         if sorted_blocks is None:
