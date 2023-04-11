@@ -56,7 +56,7 @@ if TYPE_CHECKING:
 
 _T = TypeVar('_T')
 _O = TypeVar('_O', bound='_Ordered')
-_Entry: TypeAlias = models.Balance | models.Close | models.Commodity | models.Pad | models.Event | models.Query | models.Price | models.Note | models.Document | models.Custom | models.Transaction
+_Entry: TypeAlias = models.Balance | models.Open | models.Close | models.Commodity | models.Pad | models.Event | models.Query | models.Price | models.Note | models.Document | models.Custom | models.Transaction
 _CompartmentSplitter: TypeAlias = models.Pushtag | models.Poptag | models.Pushmeta | models.Popmeta | models.BlockComment
 _TopLevelEntitiy = models.Directive | models.BlockComment
 
