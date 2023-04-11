@@ -125,34 +125,38 @@ def _is_ordered(entities: Sequence[_Ordered[_T]]) -> bool:
 def _split_sorted_unsorted(
     entities: Sequence[_O],
 ) -> tuple[list[_O], list[_O]]:
+    # (running max index, entity index) -> (prev running max index, prev entity index)
+    p = dict[tuple[int, int], tuple[int, int]]()
+    m = list[tuple[int, int]]()  # length -> (running max index, last entity index)
 
-    # (running_max, prev)
-    l = list[tuple[_O, int]]()
-    # prev length -> prev
-    m = list[int]()
-    sorted, unsorted = [], []
+    for i, entity in enumerate(entities):
+        # first element we cannot go after
+        j = bisect.bisect_left(m, True, key=lambda item: not entities[item[0]].can_go_before(entity))
+        while j >= 0 and (j == len(m) or entity.more_successor_permissive_than(entities[m[j][0]])):
+            running_max = i
+            if j:
+                if entity.max(entity, entities[m[j - 1][0]]) is not entity:
+                    running_max = m[j - 1][0]
+                p[(running_max, i)] = m[j - 1]
+            m[j:j+1] = [(running_max, i)]
+            j -= 1
+        
+    last = m[-1] if m else None
+    sorted_i, sorted, unsorted = [], [], []
+    while last:
+        sorted_i.append(last[1])
+        last = p.get(last)
+    sorted_i.reverse()
+
+    sorted = [entities[i] for i in sorted_i]
+    j = 0
     for i in range(len(entities)):
-        prev_len = bisect.bisect_left(m, True, key=lambda prev: not l[prev][0].can_go_before(entities[i]))
-        running_max = entities[i]
-        if prev_len:
-            prev = m[prev_len - 1]
-            running_max = running_max.max(running_max, l[prev][0])
+        if j < len(sorted_i) and i == sorted_i[j]:
+            j += 1
         else:
-            prev = -1
-        l.append((running_max, prev))
-        if prev_len == len(m):
-            m.append(i)
-        elif running_max.more_successor_permissive_than(l[m[prev_len]][0]):
-            m[prev_len] = i
-    last = m[-1] if m else -1
-    unsorted.append(entities[last+1:])
-    while last >= 0:
-        sorted.append(entities[last])
-        prev = l[last][1]
-        unsorted.append(entities[prev + 1:last])
-        last = prev
-    sorted.reverse()
-    return sorted, list(itertools.chain.from_iterable(reversed(unsorted)))
+            unsorted.append(entities[i])
+
+    return sorted, unsorted
 
 
 def _get_entry_time(entry: _Entry) -> int | None:
