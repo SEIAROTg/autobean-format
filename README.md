@@ -97,8 +97,9 @@ include "price.*"
 
 ```beancount
 2021-01-01 price EUR 1.21 USD
-    ;leading comment
+ ;inner comment
 2021-01-04 price GBP  1.36 USD  ; Y
+;leading comment
 2021-01-01 price JPY  0.009 USD
 
 2020-01-01 price EUR  1.12 USD
@@ -134,8 +135,9 @@ include "price.*"
 2020-01-02 price GBP     1.32 USD
 
 2021-01-01 price EUR     1.21 USD
-2021-01-01 price JPY    0.009 USD
+    ; inner comment
 ; leading comment
+2021-01-01 price JPY    0.009 USD
 2021-01-04 price GBP     1.36 USD ; Y
 ```
 
