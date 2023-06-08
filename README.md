@@ -11,7 +11,7 @@ Yet another formatter for beancount.
 
 * Deep cleanup.
   * Normalizes **all** spacing.
-  * Full beancount v2 syntax support (except out-of-line tag / meta in `transaction`).
+  * Full beancount v2 syntax support (except out-of-line tags / links in `transaction`).
 * Currency / cost aligning.
   * Works for `open`, `balance`, `price` and posting.
 * Entry sorting.
