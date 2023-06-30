@@ -39,6 +39,8 @@ class _FilesFormatter:
 
         while queue:
             filename = queue.popleft()
+            if filename in visited:
+                continue
             visited.add(filename)
             with open(filename) as f:
                 text = f.read()
