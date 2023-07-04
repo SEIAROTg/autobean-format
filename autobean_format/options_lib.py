@@ -48,7 +48,7 @@ def parse_args() -> tuple[str, Options]:
         prog='autobean-format',
         description='Formats beancount files',
     )
-    parser.add_argument('filename')
+    parser.add_argument('filename', help="When filename is -, read standard input and disallow --recursive")
     parser.add_argument('--indent', type=_indent_type, default='    ', help='Indentation string. (default: 4 spaces)')
     parser.add_argument('--currency-column', type=int, default=80, help='Column to align currencies to. (default: %(default)s)')
     parser.add_argument('--cost-column', type=int, default=85, help='Column to align cost and price to. (default: %(default)s)')
@@ -67,5 +67,5 @@ def parse_args() -> tuple[str, Options]:
         thousands_separator=args.thousands_separator,
         spaces_in_braces=args.spaces_in_braces,
         sort=args.sort,
-        recursive=args.recursive,
+        recursive=False if args.filename == '-' else args.recursive,
     )
