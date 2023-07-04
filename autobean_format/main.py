@@ -1,10 +1,12 @@
 import collections
 import dataclasses
 import difflib
+import fileinput
 import glob
 import io
 import os.path
 import sys
+from contextlib import nullcontext
 from typing import Iterable, Iterator
 from . import formatter, options_lib
 from autobean_refactor import models, parser as parser_lib
@@ -42,8 +44,8 @@ class _FilesFormatter:
             if filename in visited:
                 continue
             visited.add(filename)
-            with open(filename) as f:
-                text = f.read()
+            with fileinput.input(files=filename) as f:
+                text = ''.join(f)
             model = self._parser.parse(text, models.File)
             model.auto_claim_comments()
             yield _File(filename=filename, text=text, model=model)
@@ -69,7 +71,7 @@ class _FilesFormatter:
                 sys.stdout.writelines(diff)
                 sys.stdout.flush()
             case options_lib.OutputMode.INPLACE:
-                with open(file.filename, 'w') as f:
+                with open(file.filename, "w") if file.filename != '-' else nullcontext(sys.stdout) as f:
                     f.write(formatted)
 
 
