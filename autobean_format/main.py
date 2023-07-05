@@ -71,7 +71,7 @@ class _FilesFormatter:
                 sys.stdout.writelines(diff)
                 sys.stdout.flush()
             case options_lib.OutputMode.INPLACE:
-                with open(file.filename, "w") if file.filename != '-' else nullcontext(sys.stdout) as f:
+                with open(file.filename, "w") as f:
                     f.write(formatted)
 
 
@@ -83,3 +83,4 @@ def main() -> None:
     for file in formatter.load_files(filename):
         formatted = formatter.format_file(file)
         formatter.output_file(file, formatted)
+
