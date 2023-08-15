@@ -44,7 +44,7 @@ class _FilesFormatter:
             if filename in visited:
                 continue
             visited.add(filename)
-            with fileinput.input(files=filename) as f:
+            with fileinput.input(files=filename, encoding='utf-8') as f:
                 text = ''.join(f)
             model = self._parser.parse(text, models.File)
             model.auto_claim_comments()
@@ -71,7 +71,7 @@ class _FilesFormatter:
                 sys.stdout.writelines(diff)
                 sys.stdout.flush()
             case options_lib.OutputMode.INPLACE:
-                with open(file.filename, "w") as f:
+                with open(file.filename, 'w', encoding='utf-8') as f:
                     f.write(formatted)
 
 
