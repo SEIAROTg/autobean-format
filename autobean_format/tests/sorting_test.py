@@ -131,6 +131,12 @@ class TestSorting(base.BaseTest):
             [['2000-01-01'], ['2000-01-02'], ['2000-01-02'], ['2000-01-02 01:00'], ['2000-01-02 02:00'], ['2000-01-02 03:00']],
             id='untimed ambiguous in LIS',
         ),
+        pytest.param(
+            [['2000-01-01', '2000-01-05'], ['2000-01-01', '2000-01-05']],
+            # maybe better to be [['2000-01-01'], ['2000-01-01', '2000-01-05'], ['2000-01-05']]
+            [['2000-01-01'], ['2000-01-01'], ['2000-01-05'], ['2000-01-05']],
+            id='break tie',
+        ),
     ])
     def test_sort_blocks(self, blocks: list[_TestBlock], sorted_blocks: Optional[list[_TestBlock]]) -> None:
         if sorted_blocks is None:

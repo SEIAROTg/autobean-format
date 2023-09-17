@@ -200,10 +200,11 @@ def _merge_entries(sorted: Sequence['_OrderedEntry'], unsorted: Sequence['_Order
 
 class _OrderedEntry(_Ordered[_Entry]):
 
-    def __init__(self, entry: _Entry) -> None:
+    def __init__(self, entry: _Entry, initial_index: int) -> None:
         super().__init__(entry)
         self.date = entry.date
         self.time = _get_entry_time(entry)
+        self.initial_index = initial_index
 
     def more_successor_permissive_than(self, other: Self) -> bool:
         return self.date < other.date or (self.date == other.date and (
@@ -246,14 +247,6 @@ class _OrderedBlock(_Ordered[_Block]):
         super().__init__(block)
         self.entries = cast(Sequence[_OrderedEntry], block) if isinstance(block[0], _OrderedEntry) else None
 
-    @classmethod
-    def from_raw_block(cls, block: Sequence[_TopLevelEntitiy]) -> Self:
-        if isinstance(block[0], get_args(_Entry)):
-            return cls(_OrderedEntry.sort([
-                _OrderedEntry(entry) for entry in cast(list[_Entry], block)]))
-        else:
-            return cls(block)
-
     @functools.cached_property
     def _max(self) -> Optional['_OrderedEntry']:
         if not self.entries:
@@ -289,34 +282,37 @@ class _OrderedBlock(_Ordered[_Block]):
 
     def simple_sort_key(self) -> Any:
         assert self._min and self._max  # undated blocks must be part of sorted
-        return (self._min.simple_sort_key(), self._max.simple_sort_key())
+        first_entry_index = -1
+        if self.entries:
+            first_entry_index = self.entries[0].initial_index
+        return (self._min.simple_sort_key(), self._max.simple_sort_key(), first_entry_index)
 
     @classmethod
     def merge(cls, sorted: list['_OrderedBlock'], unsorted: list['_OrderedBlock']) -> Iterator['_OrderedBlock']:
-        keyed_unsorted = [(block.simple_sort_key(), i, block) for i, block in enumerate(unsorted)]
+        keyed_unsorted = [(block.simple_sort_key(), block) for block in unsorted]
         heapq.heapify(keyed_unsorted)
         cursor_sorted = 0
         while cursor_sorted < len(sorted) and keyed_unsorted:
-            if sorted[cursor_sorted].can_go_before(keyed_unsorted[0][2]):
+            if sorted[cursor_sorted].can_go_before(keyed_unsorted[0][-1]):
                 yield sorted[cursor_sorted]
                 cursor_sorted += 1
-            elif keyed_unsorted[0][2].can_go_before(sorted[cursor_sorted]):
-                yield heapq.heappop(keyed_unsorted)[2]
+            elif keyed_unsorted[0][-1].can_go_before(sorted[cursor_sorted]):
+                yield heapq.heappop(keyed_unsorted)[-1]
             else:
                 sorted_head_entries = sorted[cursor_sorted].entries
                 cursor_sorted += 1
                 unsorted_block = heapq.heappop(keyed_unsorted)
-                unsorted_head_entries = unsorted_block[2].entries
+                unsorted_head_entries = unsorted_block[-1].entries
                 assert sorted_head_entries is not None
                 assert unsorted_head_entries is not None
                 split_blocks = _merge_entries(sorted_head_entries, unsorted_head_entries)
                 for block in split_blocks:
                     ordered_block = _OrderedBlock(block)
-                    heapq.heappush(keyed_unsorted, (ordered_block.simple_sort_key(), unsorted_block[1], ordered_block))
+                    heapq.heappush(keyed_unsorted, (ordered_block.simple_sort_key(), ordered_block))
         if cursor_sorted < len(sorted):
             yield from sorted[cursor_sorted:]
         while keyed_unsorted:
-            yield heapq.heappop(keyed_unsorted)[2]
+            yield heapq.heappop(keyed_unsorted)[-1]
 
 
 def _sort_compartment(blocks: list[_OrderedBlock]) -> list[Sequence[_TopLevelEntitiy]]:
@@ -334,13 +330,22 @@ def _sort_compartment(blocks: list[_OrderedBlock]) -> list[Sequence[_TopLevelEnt
 def sort_blocks(blocks: Iterable[Sequence[_TopLevelEntitiy]]) -> list[Sequence[_TopLevelEntitiy]]:
     results = []
     compartment = list[_OrderedBlock]()
+    first_entry_index = 0
     for block in blocks:
         if isinstance(block[0], get_args(_CompartmentSplitter)):
             results.extend(_sort_compartment(compartment))
             compartment.clear()
             results.append(block)
+        elif isinstance(block[0], get_args(_Entry)):
+            # sort within block
+            sorted_entries = _OrderedEntry.sort([
+                _OrderedEntry(entry, first_entry_index + offset)
+                for offset, entry in enumerate(cast(list[_Entry], block))
+            ])
+            compartment.append(_OrderedBlock(sorted_entries))
         else:
-            compartment.append(_OrderedBlock.from_raw_block(block))
+            compartment.append(_OrderedBlock(block))
+        first_entry_index += len(block)
     if compartment:
         results.extend(_sort_compartment(compartment))
     return results
