@@ -47,7 +47,8 @@ import decimal
 import functools
 import heapq
 import itertools
-from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Self, Sequence, TypeAlias, TypeVar, cast, get_args
+from typing import TYPE_CHECKING, Any, Generic, Iterable, Iterator, Optional, Sequence, TypeAlias, TypeVar, cast, get_args
+from typing_extensions import Self
 
 from autobean_refactor import models
 from . import chrono
@@ -80,7 +81,7 @@ class _Ordered(Generic[_T], abc.ABC):
     @abc.abstractmethod
     def min(cls, a: Self, b: Self) -> Self:
         """An associative function to summarize the lower bound for can_go_before.
-        
+
         Formally:
         forall x: x.can_go_before(a) && x.can_go_before(b) <=> x.can_go_before(min(a, b))
         """
@@ -140,7 +141,7 @@ def _split_sorted_unsorted(
                 p[(running_max, i)] = m[j - 1]
             m[j:j+1] = [(running_max, i)]
             j -= 1
-        
+
     last = m[-1] if m else None
     sorted_i, sorted, unsorted = [], [], []
     while last:
