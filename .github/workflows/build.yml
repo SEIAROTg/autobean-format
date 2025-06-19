@@ -34,3 +34,5 @@ jobs:
         uses: cachix/install-nix-action@v30
       - name: Build from Nix flake
         run: nix build
+      - name: Test run of result
+        run: ./result/bin/autobean-format --help
