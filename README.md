@@ -61,6 +61,7 @@ autobean-format foo.bean \
     --indent='    ' \
     --currency-column=30 \
     --cost-column=35 \
+    --inline-comment-column=0 \
     --thousands-separator=add \
     --spaces-in-braces \
     --sort \

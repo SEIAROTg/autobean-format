@@ -26,6 +26,9 @@ def format_posting(posting: models.Posting, context: base.Context) -> Iterator[m
     elif header.raw_price:
         if padding := alignment.get_padding_align_left(header.raw_price, context.options.cost_column):
             header.raw_price.spacing_before += padding
+    if (raw_inline_comment := header.raw_inline_comment) is not None:
+        if padding := alignment.get_padding_align_left(raw_inline_comment, context.options.inline_comment_column):
+            raw_inline_comment.spacing_before += padding
 
     yield from header.tokens
 

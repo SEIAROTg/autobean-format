@@ -34,14 +34,13 @@ def formatter(model_type: Type[_M]) -> Callable[[_Formatter[_M]], _Formatter[_M]
 
 
 def format(model: models.RawModel, context: Context) -> Iterator[models.RawTokenModel]:
-    formatter = _FORMATTERS.get(type(model))
-    if formatter:
-        yield from formatter(model, context)
-    elif isinstance(model, models.RawTokenModel):
-        yield model
+    for cls in type(model).__mro__:
+        fn = _FORMATTERS.get(cls)
+        if fn is not None:
+            break
     else:
-        for child, indented in model.iter_children_formatted():
-            yield from format(child, context.with_indented(indented))
+        assert False
+    yield from fn(model, context)
 
 
 def collect(children: Iterable[tuple[models.RawModel, bool]], context: Context) -> str:

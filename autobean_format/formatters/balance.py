@@ -16,6 +16,9 @@ def format_balance(open: models.Balance, context: base.Context) -> Iterator[mode
     header = context.parser.parse(line, models.Balance)
     if padding := alignment.get_padding_align_left(header.raw_currency, context.options.currency_column):
         header.raw_account.spacing_after += padding
+    if (raw_inline_comment := header.raw_inline_comment) is not None:
+        if padding := alignment.get_padding_align_left(raw_inline_comment, context.options.inline_comment_column):
+            raw_inline_comment.spacing_before += padding
     yield from header.tokens
 
     for child, indented in children_it:

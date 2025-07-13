@@ -9,6 +9,7 @@ DEFAULT_OPTIONS = options_lib.Options(
     indent='    ',
     currency_column=80,
     cost_column=85,
+    inline_comment_column=0,
     output_mode=options_lib.OutputMode.STDOUT,
     thousands_separator=options_lib.ThousandsSeparator.KEEP,
     spaces_in_braces=False,

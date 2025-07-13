@@ -11,12 +11,15 @@ def format_open(open: models.Open, context: base.Context) -> Iterator[models.Raw
 
     for child, indented in children_it.take_until(lambda x: isinstance(x[0], models.Date)):
         yield from base.format(child, context.with_indented(indented))
-    
+
     line = base.collect(children_it.take_until_inclusive(lambda x: isinstance(x[0], models.Eol)), context)
     header = context.parser.parse(line, models.Open)
     if header.raw_currencies:
         if padding := alignment.get_padding_align_left(header.raw_currencies[0], context.options.currency_column):
             header.raw_currencies[0].spacing_before += padding
+    if (raw_inline_comment := header.raw_inline_comment) is not None:
+        if padding := alignment.get_padding_align_left(raw_inline_comment, context.options.inline_comment_column):
+            raw_inline_comment.spacing_before += padding
     yield from header.tokens
 
     for child, indented in children_it:
