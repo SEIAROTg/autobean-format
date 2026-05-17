@@ -16,10 +16,10 @@
 
           autobean-refactor =
             let
-              version = "0.2.6";
+              version = "0.3.1";
               # The hash will need to be updated when the version is bumped.
               # The easiest way is to set it to the empty string and observe the output of nix build.
-              hash = "sha256-F5mIsMLU5o7+sKmu+r4CmHrImGnfPkaPOv/WJNtSErM=";
+              hash = "sha256-VNqyr46yqOs5ynEfpD/FJKRljEpb9emqyNlL+w8jGmo=";
             in
             pkgs.python3Packages.buildPythonPackage {
               pname = "autobean-refactor";
@@ -33,7 +33,7 @@
               };
 
               nativeBuildInputs = with pkgs.python3Packages; [
-                pdm-pep517
+                pdm-backend
               ];
 
               propagatedBuildInputs = with pkgs.python3Packages; [
@@ -54,7 +54,7 @@
               src = ./.;
 
               nativeBuildInputs = with pkgs.python3Packages; [
-                pdm-pep517
+                pdm-backend
               ];
 
               propagatedBuildInputs = with pkgs.python3Packages;[

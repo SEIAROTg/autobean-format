@@ -1,6 +1,6 @@
 [project]
 name = "autobean-format"
-version = "0.1.7"
+version = "0.1.8"
 description = "Yet another formatter for beancount"
 authors = [
     {name = "SEIAROTg", email = "seiarotg@gmail.com"},
@@ -17,8 +17,8 @@ license = {text = "MIT"}
 autobean-format = "autobean_format.main:main"
 
 [build-system]
-requires = ["pdm-pep517>=1.0"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.pdm]
 [tool.pdm.build]
