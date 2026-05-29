@@ -12,6 +12,9 @@ _TestBlock: TypeAlias = list[str] | list[_TopLevelEntity]
 _PLUGIN = models.Plugin.from_value(name='test')
 _INCLUDE = models.Include.from_value(filename='test')
 _PUSHTAG = models.Pushtag.from_value(tag='test')
+_OUTLINE1 = models.IgnoredLine.from_children(models.Ignored.from_raw_text('* Cat1'))
+_OUTLINE2 = models.IgnoredLine.from_children(models.Ignored.from_raw_text('* Cat2'))
+_OUTLINE3 = models.IgnoredLine.from_children(models.Ignored.from_raw_text('* Cat3'))
 
 
 def build_dated_entry(entry: str) -> _TopLevelEntity:
@@ -136,6 +139,20 @@ class TestSorting(base.BaseTest):
             # maybe better to be [['2000-01-01'], ['2000-01-01', '2000-01-05'], ['2000-01-05']]
             [['2000-01-01'], ['2000-01-01'], ['2000-01-05'], ['2000-01-05']],
             id='break tie',
+        ),
+        pytest.param(
+            # https://github.com/SEIAROTg/autobean-format/issues/16
+            [
+                [_OUTLINE1], ['2000-01-01', '2020-01-01'],
+                [_OUTLINE2], ['2020-01-01', '2000-01-01'],
+                [_OUTLINE3], ['2000-01-01', '2020-01-01'],
+            ],
+            [
+                [_OUTLINE1], ['2000-01-01', '2020-01-01'],
+                [_OUTLINE2], ['2000-01-01', '2020-01-01'],
+                [_OUTLINE3], ['2000-01-01', '2020-01-01'],
+            ],
+            id='outline_headers_split_compartments',
         ),
     ])
     def test_sort_blocks(self, blocks: list[_TestBlock], sorted_blocks: Optional[list[_TestBlock]]) -> None:
