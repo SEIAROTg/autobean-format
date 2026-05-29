@@ -13,9 +13,17 @@ def format_indent(indent: models.Indent, context: base.Context) -> Iterator[mode
 
 @base.formatter(models.BlockComment)
 def format_block_comment(comment: models.BlockComment, context: base.Context) -> Iterator[models.RawTokenModel]:
-    yield models.BlockComment.from_value(
-        value=comment.value,
-        indent=context.get_indent())
+    indent = context.get_indent()
+    parsed = []
+    for line in comment.raw_text.split('\n'):
+        stripped = line.lstrip(' \t')
+        body = stripped.lstrip(';')
+        n = len(stripped) - len(body)
+        parsed.append((n, body.removeprefix(' ')))
+    max_semis = max(n for n, _ in parsed)
+    yield models.BlockComment.from_raw_text('\n'.join(
+        f'{indent}{";" * n:<{max_semis}} {content}' for n, content in parsed
+    ))
 
 
 @base.formatter(models.InlineComment)

@@ -39,6 +39,13 @@ class TestToken(base.BaseTest):
             models.InlineComment, ';;foo;bar;baz', ';; foo ; bar;baz',
             id='autobean.narration and comment',
         ),
+        # https://github.com/SEIAROTg/autobean-format/issues/15
+        pytest.param(
+            models.BlockComment,
+            ';; A\n;;; B\n; C\n;;hello\n;four',
+            ';;  A\n;;; B\n;   C\n;;  hello\n;   four',
+            id='block_comment_semi_alignment',
+        ),
     ])
     def test_token(self, model_type: Type[models.RawTokenModel], src: str, expected: str) -> None:
         assert self.format_token(src, model_type) == expected
